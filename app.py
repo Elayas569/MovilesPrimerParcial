@@ -1,27 +1,25 @@
 from flask import Flask
-import os
-from dotenv import load_dotenv
-from config.db import init_db
-
+from config.db import init_db, db
 from routes.users import users_bp
-
+from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
+from dotenv import load_dotenv
+import os
 
-load_dotenv()
+load_dotenv()  # Carga las variables del .env
 
+app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 
-def create_app():
-    app = Flask(__name__)
-    init_db(app)
-    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET")
-    jwt = JWTManager(app)
-    app.register_blueprint(users_bp, url_prefix="/users")
+init_db(app)
+bcrypt = Bcrypt(app)
+jwt = JWTManager(app)
 
-    return app
+app.register_blueprint(users_bp, url_prefix='/users')
 
+with app.app_context():
+    db.create_all()
 
-app = create_app()
-
-if __name__ == "__main__":
-    port = int(os.getenv("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)

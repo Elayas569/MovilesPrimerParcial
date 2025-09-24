@@ -7,14 +7,15 @@ name = "pypi"
 flask = "*"
 flask-restful = "*"
 flask-cors = "*"
-flask-sqlalchemy = "*"
 marshmallow = "*"
 marshmallow-sqlalchemy = "*"
 python-barcode = "*"
 pillow = "*"
-python-dotenv = "*"
 flask-bcrypt = "*"
 flask-jwt-extended = "*"
+psycopg2-binary = "*"
+flask-sqlalchemy = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
