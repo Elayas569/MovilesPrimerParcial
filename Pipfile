@@ -13,9 +13,9 @@ python-barcode = "*"
 pillow = "*"
 flask-bcrypt = "*"
 flask-jwt-extended = "*"
-psycopg2-binary = "*"
 flask-sqlalchemy = "*"
 python-dotenv = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 

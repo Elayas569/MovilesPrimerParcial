@@ -7,6 +7,7 @@ from config.db import db
 users_bp = Blueprint('users', __name__)
 bcrypt = Bcrypt()
 
+
 @users_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
@@ -22,6 +23,7 @@ def register():
     db.session.add(user)
     db.session.commit()
     return jsonify({'message': 'User registered'}), 201
+
 
 @users_bp.route('/login', methods=['POST'])
 def login():

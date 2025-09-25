@@ -1,6 +1,8 @@
 from flask import Flask
 from config.db import init_db, db
 from routes.users import users_bp
+from routes.health import health_bp
+from routes.products import products_bp
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
@@ -17,6 +19,8 @@ bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
 app.register_blueprint(users_bp, url_prefix='/users')
+app.register_blueprint(health_bp, url_prefix='/health')
+app.register_blueprint(products_bp, url_prefix='/products')
 
 with app.app_context():
     db.create_all()
