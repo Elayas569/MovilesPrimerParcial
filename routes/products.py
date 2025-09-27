@@ -2,13 +2,27 @@ from flask import Blueprint, request, jsonify
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from models.product import Products
+from models.user import Users
+from models.movement import Movements
 from config.db import db
 
 products_bp = Blueprint('products', __name__)
+'''
+PENDIENTES
+- Error Handling
+- Data and Data type validation en las requests
+- Todo el docs xd
+'''
 
 
 @products_bp.route("/register", methods=["POST"])
+@jwt_required()
 def register():
+    claims = get_jwt()
+    current_user_is_admin = claims.get('isAdmin', False)
+    if not current_user_is_admin:
+        return jsonify({'message': 'Admin privileges required'}), 403
+
     data = request.get_json()
     if Products.query.filter_by(barcode=data['barcode']).first():
         return jsonify({'message': 'Item already registered'}), 400
@@ -34,15 +48,13 @@ def register():
 @products_bp.route("/<int:barcode>", methods=["PUT"])
 @jwt_required()
 def update(barcode):
-    current_user = get_jwt_identity()
     claims = get_jwt()
     current_user_is_admin = claims.get('isAdmin', False)
-
-    data = request.get_json()
-
-    product = Products.query.filter_by(barcode=barcode).first()
     if not current_user_is_admin:
         return jsonify({'message': 'Admin privileges required'}), 403
+
+    data = request.get_json()
+    product = Products.query.filter_by(barcode=barcode).first()
 
     if not product:
         return jsonify({'message': 'Product not found'}), 404
@@ -57,18 +69,42 @@ def update(barcode):
         product.imageUrl = data['imageUrl']
     db.session.commit()
     return jsonify({'message': 'Product updated'}), 200
-# pendiente
 
 
 @products_bp.route("/<int:barcode>/stock", methods=["PUT"])
 @jwt_required()
 def updateStock(barcode):
-    # user
+    '''
+    Request campos:
+    stockAdded int positiva o negativa que se sumará al stock
+    notes: informacion de q es, venta, compra, etc
+    '''
+
+    current_user_id = get_jwt_identity()
+    if not Users.query.get(current_user_id):
+        return jsonify({"message": "User not found"}), 404
 
     data = request.get_json()
+    if "stockAdded" not in data:
+        return jsonify({"message": "Missing stock value"}), 400
+
+    try:
+        stock_added = int(data["stockAdded"])
+    except (ValueError, TypeError):
+        return jsonify({"message": "stockAdded must be a number"}), 400
+
     product = Products.query.filter_by(barcode=barcode).first()
     if not product:
         return jsonify({'message': 'Product not found'}), 404
-    product.stock = data["stock"]
+
+    product.stock += stock_added
+
+    movement = Movements(
+        barcode=barcode,
+        user_id=current_user_id,
+        quantity=int(data["stockAdded"]),
+        notes=data.get('notes', None)
+    )
+    db.session.add(movement)
     db.session.commit()
-    return jsonify({"message": "Product updated succesfully"}), 200
+    return jsonify({"message": "Stock updated", "new_stock": product.stock}), 200

@@ -6,6 +6,7 @@ from routes.products import products_bp
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from dotenv import load_dotenv
+from datetime import timedelta
 import os
 
 load_dotenv()  # Carga las variables del .env
@@ -13,6 +14,11 @@ load_dotenv()  # Carga las variables del .env
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+if os.getenv('FLASK_ENV') == 'development':
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=30)
+    print("App started in production")
+if os.getenv('FLASK_ENV') == 'production':
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
 
 init_db(app)
 bcrypt = Bcrypt(app)
