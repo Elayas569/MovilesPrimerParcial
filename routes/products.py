@@ -37,23 +37,38 @@ def update(barcode):
     current_user = get_jwt_identity()
     claims = get_jwt()
     current_user_is_admin = claims.get('isAdmin', False)
-    
+
     data = request.get_json()
-    
+
     product = Products.query.filter_by(barcode=barcode).first()
     if not current_user_is_admin:
         return jsonify({'message': 'Admin privileges required'}), 403
-    else:
-        if not product:
-            return jsonify({'message': 'Product not found'}), 404
-        else:
-            product.name = data['name']
-            product.buyPrice = data['buyPrice']
-            product.sellPrice = data['sellPrice']
-            product.stock = data['stock']
-            if 'marca' in data and data['marca'] is not None:
-                product.marca = data['marca']
-            if 'imageUrl' in data and data['imageUrl'] is not None:
-                product.imageUrl = data['imageUrl']
-            db.session.commit()
-            return jsonify({'message': 'Product updated'}), 200
+
+    if not product:
+        return jsonify({'message': 'Product not found'}), 404
+
+    product.name = data['name']
+    product.buyPrice = data['buyPrice']
+    product.sellPrice = data['sellPrice']
+    product.stock = data['stock']
+    if 'marca' in data and data['marca'] is not None:
+        product.marca = data['marca']
+    if 'imageUrl' in data and data['imageUrl'] is not None:
+        product.imageUrl = data['imageUrl']
+    db.session.commit()
+    return jsonify({'message': 'Product updated'}), 200
+# pendiente
+
+
+@products_bp.route("/<int:barcode>/stock", methods=["PUT"])
+@jwt_required()
+def updateStock(barcode):
+    # user
+
+    data = request.get_json()
+    product = Products.query.filter_by(barcode=barcode).first()
+    if not product:
+        return jsonify({'message': 'Product not found'}), 404
+    product.stock = data["stock"]
+    db.session.commit()
+    return jsonify({"message": "Product updated succesfully"}), 200
