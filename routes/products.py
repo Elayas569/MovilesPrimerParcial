@@ -8,6 +8,7 @@ from config.db import db
 
 products_bp = Blueprint('products', __name__)
 '''
+TODO
 PENDIENTES
 - Error Handling
 - Data and Data type validation en las requests
@@ -108,3 +109,39 @@ def updateStock(barcode):
     db.session.add(movement)
     db.session.commit()
     return jsonify({"message": "Stock updated", "new_stock": product.stock}), 200
+
+
+@products_bp.route("/", methods=["GET"])
+@jwt_required()
+def list_all_products():
+    products = Products.query.all()
+    products_list = []
+    for product in products:
+        products_list.append({
+            "barcode": product.barcode,
+            "name": product.name,
+            "buyPrice": product.buyPrice,
+            "sellPrice": product.sellPrice,
+            "stock": product.stock,
+            "marca": getattr(product, "marca", None),
+            "imageUrl": getattr(product, "imageUrl", None)
+        })
+    return jsonify(products_list), 200
+
+
+@products_bp.route("/<int:barcode>", methods=["GET"])
+@jwt_required()
+def get_product(barcode):
+    product = Products.query.filter_by(barcode=barcode).first()
+    if not product:
+        return jsonify({'message': 'Product not found'}), 404
+    product_data = {
+        "barcode": product.barcode,
+        "name": product.name,
+        "buyPrice": product.buyPrice,
+        "sellPrice": product.sellPrice,
+        "stock": product.stock,
+        "marca": getattr(product, "marca", None),
+        "imageUrl": getattr(product, "imageUrl", None)
+    }
+    return jsonify(product_data), 200
