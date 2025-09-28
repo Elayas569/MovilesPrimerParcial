@@ -79,32 +79,42 @@ def updateStock(barcode):
             return jsonify({"message": "User not found"}), 404
 
         data = request.get_json()
-        if "stockAdded" not in data:
-            return jsonify({"message": "Missing stock value"}), 400
+        if "newStock" not in data:
+            return jsonify({"message": "Missing newStock value"}), 400
 
         try:
-            stock_added = int(data["stockAdded"])
+            new_stock = int(data["newStock"])
         except (ValueError, TypeError):
-            return jsonify({"message": "stockAdded must be a number"}), 400
+            return jsonify({"message": "newStock must be a number"}), 400
 
         product = Products.query.filter_by(barcode=barcode).first()
         if not product:
             return jsonify({'message': 'Product not found'}), 404
 
-        product.stock += stock_added
+        old_stock = product.stock
+        difference = new_stock - old_stock
+
+        product.stock = new_stock
 
         movement = Movements(
             barcode=barcode,
             user_id=current_user_id,
-            quantity=int(data["stockAdded"]),
+            quantity=difference,
             notes=data.get('notes', None)
         )
         db.session.add(movement)
         db.session.commit()
-        return jsonify({"message": "Stock updated", "new_stock": product.stock}), 200
+
+        return jsonify({
+            "message": "Stock updated",
+            "old_stock": old_stock,
+            "new_stock": new_stock,
+            "difference": difference
+        }), 200
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
 
 @products_bp.route("/", methods=["GET"])
 @jwt_required()
@@ -145,3 +155,4 @@ def get_product(barcode):
         return jsonify(product_data), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
