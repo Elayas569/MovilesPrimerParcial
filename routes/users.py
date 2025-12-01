@@ -1,6 +1,11 @@
 from flask import Blueprint, request, jsonify
 from flask_bcrypt import Bcrypt
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt
+from flask_jwt_extended import (
+    create_access_token,
+    jwt_required,
+    get_jwt,
+    get_jwt_identity,
+)
 from models.user import Users
 from config.db import db
 
@@ -74,7 +79,7 @@ def modifyUser(id):
     try:
         claims = get_jwt()
         current_user_is_admin = claims.get("isAdmin", False)
-        current_user_id = claims.get("id")
+        current_user_id = get_jwt_identity()
 
         if not (current_user_is_admin or (current_user_id != id)):
             return jsonify({"message": "Admin privileges required"}), 403
@@ -115,4 +120,36 @@ def modifyUser(id):
 
     except Exception as e:
         db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@users_bp.route("/<int:id>", methods=["GET"])
+@jwt_required()
+def getUserById(id):
+    try:
+        claims = get_jwt()
+        current_user_is_admin = claims.get("isAdmin", False)
+        current_user_id = get_jwt_identity()
+        print(current_user_id)
+
+        if not (current_user_is_admin or str(current_user_id) == str(id)):
+            return jsonify({"message": "Access denied"}), 403
+
+        user = Users.query.filter_by(id=id).first()
+        if not user:
+            return jsonify({"message": "User not found"}), 404
+
+        return (
+            jsonify(
+                {
+                    "id": user.id,
+                    "name": user.name,
+                    "email": user.email,
+                    "isAdmin": user.isAdmin,
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
