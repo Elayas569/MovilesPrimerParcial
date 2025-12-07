@@ -20,7 +20,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t tuusuario/flask-backend:latest .
+        run: docker build -t elayas569/docker-ordinario:latest .
 
       - name: Push Docker image
-        run: docker push tuusuario/flask-backend:latest
+        run: docker push elayas569/docker-ordinario:latest
