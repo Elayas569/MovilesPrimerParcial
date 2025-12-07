@@ -24,3 +24,6 @@ jobs:
 
       - name: Push Docker image
         run: docker push elayas569/docker-ordinario:${{ github.sha }}
+
+      - name: Trigger Render Deploy
+        run: curl "${{ secrets.RENDERHOOK }}"
