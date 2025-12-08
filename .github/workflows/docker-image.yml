@@ -20,10 +20,10 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t elayas569/docker-ordinario:${{ github.sha }} .
+        run: docker build -t elayas569/docker-ordinario:latest .
 
       - name: Push Docker image
-        run: docker push elayas569/docker-ordinario:${{ github.sha }}
+        run: docker push elayas569/docker-ordinario:latest
 
       - name: Trigger Render Deploy
         run: curl "${{ secrets.RENDERHOOK }}"
