@@ -10,7 +10,7 @@ def health_check():
         return jsonify({
             "message": "Server is running my bro",
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "update": "updated con githubActions video2"
+            "update": "ejemplo video actions"
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
